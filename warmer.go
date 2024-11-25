@@ -73,8 +73,8 @@ func (s *statsData[K]) getUpdateRate(interval RateIntervalType) float64 {
 }
 
 // addUpdate registers a new update.
-func (s *statsData[K]) addUpdate() {
-	s.meter.Mark(1)
+func (s *statsData[K]) addUpdate(count int64) {
+	s.meter.Mark(count)
 }
 
 // Config contains Warmer settings.
@@ -199,13 +199,14 @@ func New[K comparable, V any](
 }
 
 // TrackUpdate registers a key update.
-func (w *Warmer[K, V]) TrackUpdate(ctx context.Context, key K) {
+// count - number of updates
+func (w *Warmer[K, V]) TrackUpdate(ctx context.Context, key K, count int64) {
 	var rate float64
 
 	w.mu.Lock()
 	if stat, exists := w.stats[key]; exists {
 		// if key exists
-		stat.addUpdate()
+		stat.addUpdate(count)
 		rate = stat.getUpdateRate(w.rateInterval)
 	} else {
 		// if key doesn't exist
@@ -390,7 +391,7 @@ func (w *Warmer[K, V]) warmBatch(ctx context.Context) { //nolint:gocognit // no 
 
 			updateOnError := func() {
 				// need to increase the probability of the next warming of this key
-				stat.addUpdate() // thread safe
+				stat.addUpdate(1) // thread safe
 			}
 
 			value, err := w.getFromDB(ctx, key)

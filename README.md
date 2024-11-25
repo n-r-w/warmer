@@ -62,7 +62,7 @@ func main() {
     w.Start(ctx)
 
     // Track key updates in your application
-    w.TrackUpdate(ctx, "key1")
+    w.TrackUpdate(ctx, "key1", 1)
 
     // Stop the warmer when done
     w.Stop()

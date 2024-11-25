@@ -65,7 +65,7 @@ func main() {
 	// Create warmer configuration
 	config := warmer.Config[string]{
 		Interval:     time.Second,          // Warm cache every 5 seconds
-		BatchSize:    2,                  // Process 100 keys per batch
+		BatchSize:    2,                    // Process 100 keys per batch
 		MaxStatsSize: 1000,                 // Keep stats for 1000 keys
 		RateInterval: warmer.RateInterval1, // Use 1-minute rate interval
 		OnWarmTrack: func(_ context.Context, key string, rate float64) {
@@ -108,12 +108,12 @@ func main() {
 
 	for time.Since(now) < time.Second*10 {
 		i++
-		w.TrackUpdate(ctx, "key1") // This key will have higher update rate
+		w.TrackUpdate(ctx, "key1", 1) // This key will have higher update rate
 		if i%2 == 0 {
-			w.TrackUpdate(ctx, "key2") // This key will have medium update rate
+			w.TrackUpdate(ctx, "key2", 1) // This key will have medium update rate
 		}
 		if i%3 == 0 {
-			w.TrackUpdate(ctx, "key3") // This key will have lower update rate
+			w.TrackUpdate(ctx, "key3", 1) // This key will have lower update rate
 		}
 		time.Sleep(time.Millisecond * 500)
 	}

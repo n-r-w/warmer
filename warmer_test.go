@@ -190,7 +190,7 @@ func TestWarmBatch(t *testing.T) {
 
 	// Track all keys
 	for i := 1; i <= 4; i++ {
-		w.TrackUpdate(ctx, fmt.Sprintf("key%d", i))
+		w.TrackUpdate(ctx, fmt.Sprintf("key%d", i), 1)
 	}
 	// At this point, no statistics should be collected due to small time interval
 
@@ -199,14 +199,11 @@ func TestWarmBatch(t *testing.T) {
 	start := time.Now()
 	for time.Since(start) < 10*time.Second {
 		// key1 - frequent updates (3 updates per iteration)
-		w.TrackUpdate(ctx, "key1")
-		w.TrackUpdate(ctx, "key1")
-		w.TrackUpdate(ctx, "key1")
+		w.TrackUpdate(ctx, "key1", 3)
 		// key2 - moderate updates (2 updates per iteration)
-		w.TrackUpdate(ctx, "key2")
-		w.TrackUpdate(ctx, "key2")
+		w.TrackUpdate(ctx, "key2", 2)
 		// key3 - rare updates (1 update per iteration)
-		w.TrackUpdate(ctx, "key3")
+		w.TrackUpdate(ctx, "key3", 1)
 		// key4 - no updates
 
 		time.Sleep(time.Millisecond * 100)
@@ -281,7 +278,7 @@ func TestCleanupOldStats(t *testing.T) {
 		for time.Since(start) < duration {
 			<-ticker.C
 			for i := 0; i < updatesPerSec; i++ {
-				w.TrackUpdate(ctx, key)
+				w.TrackUpdate(ctx, key, 1)
 			}
 		}
 	}
@@ -312,7 +309,7 @@ func TestCleanupOldStats(t *testing.T) {
 	wg.Wait()
 
 	// Add one more key to trigger cleanup
-	w.TrackUpdate(ctx, "key5")
+	w.TrackUpdate(ctx, "key5", 1)
 
 	// Get rates for verification
 	logStats(t, w, cache, "Before cleanup")
@@ -401,12 +398,12 @@ func TestConcurrentUpdates(t *testing.T) {
 					if rand.Float64() < newKeyProb && atomic.LoadInt64(&newKeysCount) < maxNewKeys {
 						// Add new key
 						key := fmt.Sprintf("new_key_r%d_op%d", routineID, j)
-						w.TrackUpdate(ctx, key)
+						w.TrackUpdate(ctx, key, 1)
 						atomic.AddInt64(&newKeysCount, 1)
 					} else {
 						// Update existing key
 						key := fmt.Sprintf("existing%d", rand.Intn(3)+1)
-						w.TrackUpdate(ctx, key)
+						w.TrackUpdate(ctx, key, 1)
 					}
 
 					// Small sleep to simulate real-world load
